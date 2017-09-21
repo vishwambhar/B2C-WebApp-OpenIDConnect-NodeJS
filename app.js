@@ -41,8 +41,6 @@ var config = require('./config');
 var MongoStore = require('connect-mongo')(expressSession);
 var mongoose = require('mongoose');
 
-// Start QuickStart here
-
 var OIDCStrategy = require('passport-azure-ad').OIDCStrategy;
 
 var log = bunyan.createLogger({
@@ -124,7 +122,7 @@ passport.use(new OIDCStrategy({
     if (!profile.oid) {
       return done(new Error("No oid found"), null);
     }
-    // asynchronous verification, for effect...
+    // asynchronous verification
     process.nextTick(function () {
       findByOid(profile.oid, function(err, user) {
         if (err) {
@@ -132,6 +130,7 @@ passport.use(new OIDCStrategy({
         }
         if (!user) {
           // "Auto-registration"
+          log.info('User was added automatically as they were new. User sub is: ', profile.oid);
           users.push(profile);
           return done(null, profile);
         }
@@ -214,27 +213,9 @@ app.get('/login',
     )(req, res, next);
   },
   function(req, res) {
-    log.info('Login was called in the Sample');
+    log.info('Login was called.');
     res.redirect('/');
 });
-
-// 'GET returnURL'
-// `passport.authenticate` will try to authenticate the content returned in
-// query (such as authorization code). If authentication fails, user will be
-// redirected to '/' (home page); otherwise, it passes to the next middleware.
-app.get('/auth/openid/return',
-  function(req, res, next) {
-    passport.authenticate('azuread-openidconnect', 
-      { 
-        response: res,                      // required
-        failureRedirect: '/'  
-      }
-    )(req, res, next);
-  },
-  function(req, res) {
-    log.info('We received a return from AzureAD.');
-    res.redirect('/');
-  });
 
 // 'POST returnURL'
 // `passport.authenticate` will try to authenticate the content returned in
@@ -250,7 +231,7 @@ app.post('/auth/openid/return',
     )(req, res, next);
   },
   function(req, res) {
-    log.info('We received a return from AzureAD.');
+    log.info('We received a POST return from AzureAD.');
     res.redirect('/');
   });
 
