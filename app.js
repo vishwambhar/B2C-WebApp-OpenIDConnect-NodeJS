@@ -24,8 +24,8 @@
 'use strict';
 
 /******************************************************************************
- * Module dependencies.
- *****************************************************************************/
+* Module dependencies.
+*****************************************************************************/
 
 var express = require('express');
 var cookieParser = require('cookie-parser');
@@ -36,103 +36,87 @@ var passport = require('passport');
 var util = require('util');
 var bunyan = require('bunyan');
 var config = require('./config');
+var HashMap = require('hashmap');
 
 // set up database for express session
 var MongoStore = require('connect-mongo')(expressSession);
 var mongoose = require('mongoose');
 
+// Using OpenID Connect Strategy
 var OIDCStrategy = require('passport-azure-ad').OIDCStrategy;
 
 var log = bunyan.createLogger({
-    name: 'Microsoft OIDC Example Web Application'
+  name: 'Node.js web application using Azure Active Directory (Azure AD) for identity management'
 });
 
-/******************************************************************************
- * Set up passport in the app 
- ******************************************************************************/
-
-//-----------------------------------------------------------------------------
-// To support persistent login sessions, Passport needs to be able to
-// serialize users into and deserialize users out of the session.  Typically,
-// this will be as simple as storing the user ID when serializing, and finding
-// the user by ID when deserializing.
-//-----------------------------------------------------------------------------
-passport.serializeUser(function(user, done) {
+/**
+ * To support persistent login sessions, Passport needs to be able to serialize users into 
+ * and deserialize users out of the session. Typically, this will be as simple as storing the user 
+ * ID when serializing, and finding the user by ID when deserializing.
+ */
+passport.serializeUser(function (user, done) {
   done(null, user.oid);
 });
 
-passport.deserializeUser(function(oid, done) {
+passport.deserializeUser(function (oid, done) {
   findByOid(oid, function (err, user) {
     done(err, user);
   });
 });
 
-// array to hold logged in users
-var users = [];
+var oidToUserMap = new HashMap(); /* hashmap to hold logged-in users. */
 
-var findByOid = function(oid, fn) {
-  for (var i = 0, len = users.length; i < len; i++) {
-    var user = users[i];
-   log.info('we are using user: ', user);
-    if (user.oid === oid) {
-      return fn(null, user);
-    }
+/**
+ * Returns user object that corresponds to the given Object ID (oid).  
+ */
+var findByOid = function (oid, fn) {
+  if (oidToUserMap.has(oid)) {
+    return fn(null, oidToUserMap.get(oid));
   }
   return fn(null, null);
 };
 
-//-----------------------------------------------------------------------------
-// Use the OIDCStrategy within Passport.
-// 
-// Strategies in passport require a `verify` function, which accepts credentials
-// (in this case, the `oid` claim in id_token), and invoke a callback to find
-// the corresponding user object.
-// 
-// The following are the accepted prototypes for the `verify` function
-// (1) function(iss, sub, done)
-// (2) function(iss, sub, profile, done)
-// (3) function(iss, sub, profile, access_token, refresh_token, done)
-// (4) function(iss, sub, profile, access_token, refresh_token, params, done)
-// (5) function(iss, sub, profile, jwtClaims, access_token, refresh_token, params, done)
-// (6) prototype (1)-(5) with an additional `req` parameter as the first parameter
-//
-// To do prototype (6), passReqToCallback must be set to true in the config.
-//-----------------------------------------------------------------------------
+/**
+ * Use the OIDCStrategy within Passport.
+ * 
+ * Check out {@link https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-token-and-claims}
+ * to learn more about Azure AD security tokens including idToken, accessToken, and refreshToken. 
+ */
 passport.use(new OIDCStrategy({
-    identityMetadata: config.creds.identityMetadata,
-    clientID: config.creds.clientID,
-    responseType: config.creds.responseType,
-    responseMode: config.creds.responseMode,
-    redirectUrl: config.creds.redirectUrl,
-    allowHttpForRedirectUrl: config.creds.allowHttpForRedirectUrl,
-    clientSecret: config.creds.clientSecret,
-    validateIssuer: config.creds.validateIssuer,
-    isB2C: config.creds.isB2C,
-    issuer: config.creds.issuer,
-    passReqToCallback: config.creds.passReqToCallback,
-    scope: config.creds.scope,
-    loggingLevel: config.creds.loggingLevel,
-    nonceLifetime: config.creds.nonceLifetime,
-    nonceMaxAmount: config.creds.nonceMaxAmount,
-    useCookieInsteadOfSession: config.creds.useCookieInsteadOfSession,
-    cookieEncryptionKeys: config.creds.cookieEncryptionKeys,
-    clockSkew: config.creds.clockSkew,
-  },
-  function(iss, sub, profile, accessToken, refreshToken, done) {
-    if (!profile.oid) {
-      return done(new Error("No oid found"), null);
+  identityMetadata: config.creds.identityMetadata,
+  clientID: config.creds.clientID,
+  responseType: config.creds.responseType,
+  responseMode: config.creds.responseMode,
+  redirectUrl: config.creds.redirectUrl,
+  allowHttpForRedirectUrl: config.creds.allowHttpForRedirectUrl,
+  clientSecret: config.creds.clientSecret,
+  validateIssuer: config.creds.validateIssuer,
+  isB2C: config.creds.isB2C,
+  issuer: config.creds.issuer,
+  passReqToCallback: config.creds.passReqToCallback,
+  scope: config.creds.scope,
+  loggingLevel: config.creds.loggingLevel,
+  nonceLifetime: config.creds.nonceLifetime,
+  nonceMaxAmount: config.creds.nonceMaxAmount,
+  useCookieInsteadOfSession: config.creds.useCookieInsteadOfSession,
+  cookieEncryptionKeys: config.creds.cookieEncryptionKeys,
+  clockSkew: config.creds.clockSkew,
+},
+  function (iss, sub, idToken, accessToken, refreshToken, done) {
+    if (!idToken.oid) {
+      return done(new Error("No oid found."), null);
     }
     // asynchronous verification
     process.nextTick(function () {
-      findByOid(profile.oid, function(err, user) {
+      findByOid(idToken.oid, function (err, user) {
         if (err) {
           return done(err);
         }
         if (!user) {
           // "Auto-registration"
-          log.info('User was added automatically as they were new. User sub is: ', profile.oid);
-          users.push(profile);
-          return done(null, profile);
+          log.info('A new user is automatically registered. User oid is: ', idToken.oid);
+          oidToUserMap.set(idToken.oid, idToken);
+          return done(null, idToken);
         }
         return done(null, user);
       });
@@ -157,7 +141,7 @@ if (config.useMongoDBSessionStore) {
   mongoose.connect(config.databaseUri);
   app.use(express.session({
     secret: 'secret',
-    cookie: {maxAge: config.mongoDBSessionMaxAge * 1000},
+    cookie: { maxAge: config.mongoDBSessionMaxAge * 1000 },
     store: new MongoStore({
       mongooseConnection: mongoose.connection,
       clear_interval: config.mongoDBSessionMaxAge
@@ -167,7 +151,7 @@ if (config.useMongoDBSessionStore) {
   app.use(expressSession({ secret: 'keyboard cat', resave: true, saveUninitialized: false }));
 }
 
-app.use(bodyParser.urlencoded({ extended : true }));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Initialize Passport!  Also use passport.session() middleware, to support
 // persistent login sessions (recommended).
@@ -192,52 +176,52 @@ function ensureAuthenticated(req, res, next) {
   res.redirect('/login');
 };
 
-app.get('/', function(req, res) {
+app.get('/', function (req, res) {
   res.render('index', { user: req.user });
 });
 
 // '/account' is only available to logged in user
-app.get('/account', ensureAuthenticated, function(req, res) {
+app.get('/account', ensureAuthenticated, function (req, res) {
   res.render('account', { user: req.user });
 });
 
+
 app.get('/login',
-  function(req, res, next) {
-    passport.authenticate('azuread-openidconnect', 
-      { 
+  function (req, res, next) {
+    passport.authenticate('azuread-openidconnect',
+      {
         response: res,                      // required
         resourceURL: config.resourceURL,    // optional. Provide a value if you want to specify the resource.
         customState: 'my_state',            // optional. Provide a value if you want to provide custom state value.
-        failureRedirect: '/' 
+        failureRedirect: '/'
       }
     )(req, res, next);
   },
-  function(req, res) {
-    log.info('Login was called.');
+  function (req, res) {
     res.redirect('/');
-});
+  });
 
 // 'POST returnURL'
 // `passport.authenticate` will try to authenticate the content returned in
 // body (such as authorization code). If authentication fails, user will be
 // redirected to '/' (home page); otherwise, it passes to the next middleware.
 app.post('/auth/openid/return',
-  function(req, res, next) {
-    passport.authenticate('azuread-openidconnect', 
-      { 
+  function (req, res, next) {
+    passport.authenticate('azuread-openidconnect',
+      {
         response: res,                      // required
-        failureRedirect: '/'  
+        failureRedirect: '/'
       }
     )(req, res, next);
   },
-  function(req, res) {
+  function (req, res) {
     log.info('We received a POST return from AzureAD.');
     res.redirect('/');
   });
 
 // 'logout' route, logout from passport, and destroy the session with AAD.
-app.get('/logout', function(req, res){
-  req.session.destroy(function(err) {
+app.get('/logout', function (req, res) {
+  req.session.destroy(function (err) {
     req.logOut();
     res.redirect(config.destroySessionUrl);
   });
