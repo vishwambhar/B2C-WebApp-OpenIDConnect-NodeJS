@@ -2,9 +2,6 @@
 
 This Node.js app will give you with a quick and easy way to set up a Web application in node.js with Express using OpenID Connect. The sample server included in the download are designed to run on any platform.
 
-We've released all of the source code for this example in GitHub under an MIT license, so feel free to clone (or even better, fork!) and provide feedback on the forums.
-
-
 ## Quick Start
 
 Getting started with the sample is easy. It is configured to run out of the box with minimal setup.
@@ -23,7 +20,7 @@ Next let's register an web application in your tenant.
 
 * Now let's add some policies we will use for this sample. In the setting page, add a sign-in policy, a sign-up poligy, a profile-editing policy and a password-reset policy. When you add the policies, use the names 'signin', 'signup', 'updateprofile' and 'resetpassword' respectively. For `Identity providers`, choose `Email signup`; for `Application claims`, choose `Email Addresses`, `User's Object ID` and any other claims you want; for `Sign-up attributes`, choose `Email Address` and anything else you like.
 
-* Now we have a B2C web application and policies registered. Note that Azure AD adds a 'B2C_1_' prefix automatically to all policy names, so the policy names we will use are actually 'B2C_1_signin', 'B2C_1_signup', 'B2C_1_updateprofile' and 'B2C_1_resetpassword'. 
+* Now we have a B2C web application and policies registered. Note that Azure AD adds a 'B2C_1_' prefix automatically to all policy names, so the policy names we will use are actually 'B2C_1_signin' and 'B2C_1_signup'.
 
 ### Step 2: Download node.js for your platform
 To successfully use this sample, you need a working installation of Node.js.
@@ -34,7 +31,7 @@ Next, clone the sample repo and install the NPM.
 
 From your shell or command line:
 
-* `$ git clone git@github.com:AzureADQuickStarts/B2C-WebApp-OpenIDConnect-NodeJS.git`
+* `$ git clone git@github.com:vishwambhar/B2C-WebApp-OpenIDConnect-NodeJS.git`
 * `$ npm install`
 
 ### Step 4: Configure your server
@@ -72,12 +69,3 @@ Use the following command in terminal.
 ### You're done!
 
 You will have a server successfully running on `http://localhost:3000`.
-
-### Acknowledgements
-
-We would like to acknowledge the folks who own/contribute to the following projects for their support of Azure Active Directory and their libraries that were used to build this sample. In places where we forked these libraries to add additional functionality, we ensured that the chain of forking remains intact so you can navigate back to the original package. Working with such great partners in the open source community clearly illustrates what open collaboration can accomplish. Thank you!
-
-
-## About The Code
-
-Code hosted on GitHub under MIT license
