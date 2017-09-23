@@ -1,4 +1,4 @@
-#Azure Active Directory OIDC Web Sample
+# Node.js web app sign-up, sign-in, and sign-out with Azure Active Directory (OIDC protocol)
 
 This Node.js app will give you with a quick and easy way to set up a Web application in node.js with Express using OpenID Connect. The sample server included in the download are designed to run on any platform.
 
@@ -18,7 +18,7 @@ Next let's register an web application in your tenant.
 
 * Click the application you just created, copy the `Application ID` field and save it somewhere. This value is the clientID of your application.
 
-* Now let's add some policies we will use for this sample. In the setting page, add a sign-in policy, a sign-up poligy, a profile-editing policy and a password-reset policy. When you add the policies, use the names 'signin', 'signup', 'updateprofile' and 'resetpassword' respectively. For `Identity providers`, choose `Email signup`; for `Application claims`, choose `Email Addresses`, `User's Object ID` and any other claims you want; for `Sign-up attributes`, choose `Email Address` and anything else you like.
+* Now let's add some policies we will use for this sample. In the setting page, add a sign-in policy, and sign-up poligy. When you add the policies, use the names 'signin' and 'signup' respectively. For `Identity providers`, choose `Email signup`; for `Application claims`, choose `Email Addresses`, `User's Object ID` and any other claims you want; for `Sign-up attributes`, choose `Email Address` and anything else you like.
 
 * Now we have a B2C web application and policies registered. Note that Azure AD adds a 'B2C_1_' prefix automatically to all policy names, so the policy names we will use are actually 'B2C_1_signin' and 'B2C_1_signup'.
 
