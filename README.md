@@ -2,7 +2,7 @@
 
 This Node.js app will give you with a quick and easy way to set up a Web application in node.js with Express using OpenID Connect. The sample server included in the download are designed to run on any platform.
 
-Please [look at](https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-protocols-openid-connect-code) to understand OpenID Connect in the context of Azure Active Directory. 
+Please [look at](https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-protocols-openid-connect-code) this document to understand OpenID Connect in the context of Azure Active Directory. 
 
 ## Quick Start
 
