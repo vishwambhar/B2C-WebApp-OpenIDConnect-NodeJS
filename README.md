@@ -1,4 +1,4 @@
-# Node.js web app sign-up, sign-in, and sign-out with Azure Active Directory (OIDC protocol)
+# Node.js web app sign-up, sign-in, and sign-out with Azure Active Directory B2C
 
 This Node.js app will give you with a quick and easy way to set up a Web application in node.js with Express using OpenID Connect. The sample server included in the download are designed to run on any platform.
 
