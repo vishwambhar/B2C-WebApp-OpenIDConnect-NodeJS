@@ -15,6 +15,7 @@
     "mongoose": "^4.6.2",
     "passport": "*",
     "passport-azure-ad": "^3.0.6",
-    "hashmap": "^2.3.0"
+    "hashmap": "^2.3.0",
+    "box-node-sdk": "^1.9.0"
   }
 }

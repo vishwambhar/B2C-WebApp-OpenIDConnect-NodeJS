@@ -27,25 +27,27 @@
 * Module dependencies.
 *****************************************************************************/
 
-var express = require('express');
-var cookieParser = require('cookie-parser');
-var expressSession = require('express-session');
-var bodyParser = require('body-parser');
-var methodOverride = require('method-override');
-var passport = require('passport');
-var util = require('util');
-var bunyan = require('bunyan');
-var config = require('./config');
-var HashMap = require('hashmap');
+const express = require('express');
+const cookieParser = require('cookie-parser');
+const expressSession = require('express-session');
+const bodyParser = require('body-parser');
+const methodOverride = require('method-override');
+const passport = require('passport');
+const util = require('util');
+const bunyan = require('bunyan');
+const config = require('./config');
+const HashMap = require('hashmap');
+const aadManager = require('./aad-manager');
+
 
 // set up database for express session
-var MongoStore = require('connect-mongo')(expressSession);
-var mongoose = require('mongoose');
+const MongoStore = require('connect-mongo')(expressSession);
+const mongoose = require('mongoose');
 
 // Using OpenID Connect Strategy
-var OIDCStrategy = require('passport-azure-ad').OIDCStrategy;
+const OIDCStrategy = require('passport-azure-ad').OIDCStrategy;
 
-var log = bunyan.createLogger({
+const log = bunyan.createLogger({
   name: 'Node.js web application using Azure Active Directory (Azure AD) for identity management'
 });
 
@@ -185,7 +187,6 @@ app.get('/account', ensureAuthenticated, function (req, res) {
   res.render('account', { user: req.user });
 });
 
-
 app.get('/login',
   function (req, res, next) {
     passport.authenticate('azuread-openidconnect',
@@ -215,7 +216,9 @@ app.post('/auth/openid/return',
     )(req, res, next);
   },
   function (req, res) {
-    log.info('We received a POST return from AzureAD.');
+    log.info('Received a POST return from Azure AD.');
+
+    aadManager.login(req.user.oid);
     res.redirect('/');
   });
 
