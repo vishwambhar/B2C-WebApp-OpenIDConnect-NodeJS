@@ -53,7 +53,7 @@ exports.creds = {
   // Optional. The additional scope you want besides 'openid'
   // (1) if you want refresh_token, use 'offline_access'
   // (2) if you want access_token, use the clientID
-  scope: ['offline_access'],
+  scope: ['openid', 'offline_access', '<client id>'],
 
   // Optional, 'error', 'warn' or 'info'
   loggingLevel: 'info',
